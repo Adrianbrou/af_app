@@ -1,24 +1,26 @@
-# Logs
-logs
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Logs and temporary files
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# OS files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+
+# Large folders we don’t want in Git
+openJdk-25/

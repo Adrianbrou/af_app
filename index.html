@@ -1,21 +1,45 @@
 <!doctype html>
+<!-- Declares the document type as HTML5 -->
 <html lang="en">
+<!-- Sets the main language of the page to English -->
 
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>af_app</title>
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#000000" />
+  <!-- The <head> contains metadata and links for the page (not shown directly on the screen) -->
 
+  <meta charset="UTF-8" />
+  <!-- Defines the character encoding for the document (UTF-8 supports most characters and symbols) -->
+
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <!-- Sets the tab icon (favicon) that appears in browser tabs using an SVG file -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Makes the website responsive on mobile by setting the width to the device width -->
+
+  <title>af_app</title>
+  <!-- Sets the page title shown in the browser tab -->
+
+  <link rel="icon" href="/favicon.ico" />
+  <!-- Another favicon link (ICO format, used for better browser compatibility) -->
+
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <!-- Provides a special icon for Apple devices when users add the app to their home screen -->
+
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <!-- Connects the web app manifest (used for PWA setup: icons, name, colors, etc.) -->
+
+  <meta name="theme-color" content="#000000" />
+  <!-- Sets the color of the browser's address bar on mobile devices -->
 </head>
 
 <body>
+  <!-- The <body> contains the visible content and scripts of the page -->
+
   <div id="root"></div>
+  <!-- This is the container where your React app will be rendered (from main.jsx) -->
+
   <script type="module" src="/src/main.jsx"></script>
+  <!-- Loads your main JavaScript/React file as an ES module -->
 </body>
 
 </html>
+<!-- End of the HTML document -->

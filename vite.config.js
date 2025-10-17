@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import path from "path"; // ✅ add this line
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -38,8 +38,7 @@ export default defineConfig({
       },
     }),
   ],
-
-  // ✅ add this section at the bottom (but inside defineConfig)
+  // 👇 This part fixes the “@” imports issue
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

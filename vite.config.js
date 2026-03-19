@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: { enabled: true },
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
         name: "AF_APP - Workout Tracker",
@@ -42,6 +43,19 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/jspdf") || id.includes("node_modules/html2canvas")) return "pdf";
+          if (id.includes("node_modules/recharts")) return "charts";
+          if (id.includes("node_modules/@supabase")) return "supabase";
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/react-router-dom")) return "react";
+        },
+      },
     },
   },
 });

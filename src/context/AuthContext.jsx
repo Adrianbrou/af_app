@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+// supabase is guaranteed non-null here because App.jsx renders SetupScreen if not ready
 
 const AuthContext = createContext(null);
 

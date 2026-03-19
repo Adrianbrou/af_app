@@ -32,12 +32,14 @@ Desktop.ini
 
 # ─── ENVIRONMENT & SECRETS (NEVER COMMIT) ───────────────────
 .env
+.env.*
 .env.local
 .env.*.local
 .env.development
 .env.production
 .env.staging
 .env.test
+.env.example
 *.pem
 *.key
 *.p12

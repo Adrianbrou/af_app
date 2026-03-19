@@ -9,18 +9,65 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # IDE/editor settings
 .vscode/
 .idea/
 
-# Environment files
+# Claude Code local workspace
+.claude/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── ENVIRONMENT & SECRETS (NEVER COMMIT) ───────────────────
 .env
 .env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+.env.test
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
 
-# Large folders we don’t want in Git
+# Supabase local dev (contains service_role key)
+.supabase/
+supabase/.temp/
+
+# ─── CAPACITOR (future mobile build) ────────────────────────
+android/
+ios/
+capacitor.config.json.local
+
+# ─── MISC ────────────────────────────────────────────────────
+# Vite cache
+.vite/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Large folders
 openJdk-25/

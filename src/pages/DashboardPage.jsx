@@ -51,9 +51,15 @@ export default function DashboardPage() {
     return clients;
   }, [clients, filter]);
 
+  function isValidPhone(p) {
+    if (!p.trim()) return true; // optional field
+    return /^[+\d][\d\s\-().]{6,19}$/.test(p.trim());
+  }
+
   async function handleAdd(e) {
     e.preventDefault();
     if (!addForm.name.trim()) return;
+    if (!isValidPhone(addForm.phone)) { toast.error("Invalid phone number format."); return; }
     setAdding(true);
     try {
       await addClient({
@@ -90,6 +96,7 @@ export default function DashboardPage() {
   async function saveEdit(e, id) {
     e.stopPropagation();
     if (!editForm.name.trim()) { toast.error("Name is required."); return; }
+    if (!isValidPhone(editForm.phone)) { toast.error("Invalid phone number format."); return; }
     setSaving(true);
     try {
       await updateClient(id, {
@@ -162,8 +169,12 @@ export default function DashboardPage() {
               </div>
               <div>
                 <Label className="text-neutral-300">Phone</Label>
-                <Input className="bg-neutral-800 border-neutral-700 mt-1" placeholder="+1 (555) 000-0000"
+                <Input className={`bg-neutral-800 border-neutral-700 mt-1 ${addForm.phone && !isValidPhone(addForm.phone) ? "border-red-500" : ""}`}
+                  placeholder="+1 (555) 000-0000" type="tel"
                   value={addForm.phone} onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))} />
+                {addForm.phone && !isValidPhone(addForm.phone) && (
+                  <p className="text-xs text-red-400 mt-1">Enter a valid phone number</p>
+                )}
               </div>
               <div>
                 <Label className="text-neutral-300">Start Date</Label>

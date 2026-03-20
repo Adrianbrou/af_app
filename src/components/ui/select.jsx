@@ -5,21 +5,24 @@ import { ChevronDown } from "lucide-react";
 const TRIGGER = "SelectTrigger";
 const VALUE = "SelectValue";
 const CONTENT = "SelectContent";
-const ITEM = "SelectItem";
 
 export function Select({ value, onValueChange, children }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
-    function handleClick(e) {
+    function handleOutside(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
   }, []);
 
-  // Find the label for the current value by scanning SelectContent's children
+  // Find label for current value by scanning SelectContent children
   let selectedLabel = null;
   React.Children.forEach(children, (child) => {
     if (!child || child.type?.__selectType !== CONTENT) return;
@@ -46,8 +49,9 @@ export function Select({ value, onValueChange, children }) {
 
 export function SelectTrigger({ children, onClick, className = "", selectedLabel, open }) {
   return (
-    <div
-      className={`border border-neutral-700 bg-neutral-800 rounded-md px-3 py-2.5 cursor-pointer flex items-center justify-between gap-2 min-h-[42px] ${className}`}
+    <button
+      type="button"
+      className={`w-full border border-neutral-700 bg-neutral-800 rounded-md px-3 py-2.5 cursor-pointer flex items-center justify-between gap-2 min-h-[42px] text-left ${className}`}
       onClick={onClick}
     >
       <span className="flex-1 truncate">
@@ -58,23 +62,23 @@ export function SelectTrigger({ children, onClick, className = "", selectedLabel
         )}
       </span>
       <ChevronDown className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
-    </div>
+    </button>
   );
 }
 SelectTrigger.__selectType = TRIGGER;
 
 export function SelectValue({ placeholder, selectedLabel }) {
   return (
-    <span className={selectedLabel ? "text-neutral-100" : "text-neutral-500 text-sm"}>
+    <span className={selectedLabel ? "text-neutral-100 text-sm" : "text-neutral-500 text-sm"}>
       {selectedLabel ?? placeholder ?? "Select…"}
     </span>
   );
 }
 SelectValue.__selectType = VALUE;
 
-export function SelectContent({ children, onValueChange, setOpen }) {
+export function SelectContent({ children, onValueChange, setOpen, className = "" }) {
   return (
-    <div className="absolute z-50 mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 shadow-2xl max-h-60 overflow-y-auto">
+    <div className={`absolute z-50 mt-1 w-full rounded-md border border-neutral-700 bg-neutral-900 shadow-2xl max-h-60 overflow-y-auto ${className}`}>
       {React.Children.map(children, (child) =>
         child
           ? React.cloneElement(child, {
@@ -89,12 +93,12 @@ SelectContent.__selectType = CONTENT;
 
 export function SelectItem({ value, children, onSelect }) {
   return (
-    <div
-      className="px-3 py-2.5 hover:bg-red-600 hover:text-white cursor-pointer text-neutral-200 text-sm"
+    <button
+      type="button"
+      className="w-full text-left px-3 py-2.5 hover:bg-red-600 hover:text-white cursor-pointer text-neutral-200 text-sm"
       onClick={() => onSelect(value)}
     >
       {children}
-    </div>
+    </button>
   );
 }
-SelectItem.__selectType = ITEM;

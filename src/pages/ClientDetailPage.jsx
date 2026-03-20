@@ -60,9 +60,14 @@ export default function ClientDetailPage() {
 
   // ── Workout form ──
   const [form, setForm] = useState({
-    date: formatDateISO(), exercise: "Bench Press", muscle_group: "Chest",
-    sets: 3, reps: 10, weight: 135, rpe: "", notes: "",
+    date: formatDateISO(), exercise: "Bench Press", muscle_group: "Chest", notes: "",
   });
+  const SET_LABELS = ["Warm-up", "Work Set", "Back-off", "Drop Set", "Failure"];
+  const [setRows, setSetRows] = useState([
+    { reps: 8, weight: 135, rpe: "", label: "Warm-up" },
+    { reps: 5, weight: 225, rpe: "", label: "Work Set" },
+    { reps: 5, weight: 225, rpe: "", label: "Work Set" },
+  ]);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState(null);
@@ -100,8 +105,15 @@ export default function ClientDetailPage() {
     return ALL_EXERCISES.filter((ex) => ex.toLowerCase().includes(exerciseSearch.toLowerCase()));
   }, [form.muscle_group, exerciseSearch]);
 
-  const showSuggest = Number(form.reps) >= 12;
-  const suggestedWeight = useMemo(() => Math.round((Number(form.weight) || 0) * 1.03 * 2) / 2, [form.weight]);
+  function updateSetRow(i, field, val) {
+    setSetRows((rows) => rows.map((r, idx) => idx === i ? { ...r, [field]: val } : r));
+  }
+  function addSetRow() {
+    setSetRows((rows) => [...rows, { reps: rows[rows.length - 1]?.reps || 5, weight: rows[rows.length - 1]?.weight || 135, rpe: "", label: "Work Set" }]);
+  }
+  function removeSetRow(i) {
+    setSetRows((rows) => rows.filter((_, idx) => idx !== i));
+  }
 
   const prMap = useMemo(() => {
     const map = {};
@@ -137,15 +149,14 @@ export default function ClientDetailPage() {
     if (!tmpl || !tmpl.template_exercises?.length) return;
     const first = [...tmpl.template_exercises].sort((a, b) => a.order_index - b.order_index)[0];
     if (first) {
-      setForm((f) => ({
-        ...f,
-        exercise: first.exercise,
-        muscle_group: first.muscle_group,
-        sets: first.sets,
+      setForm((f) => ({ ...f, exercise: first.exercise, muscle_group: first.muscle_group, notes: `Template: ${tmpl.name}` }));
+      const count = first.sets || 3;
+      setSetRows(Array.from({ length: count }, (_, i) => ({
         reps: parseInt(first.reps_target) || 10,
-        weight: first.weight_target || f.weight,
-        notes: `Template: ${tmpl.name}`,
-      }));
+        weight: first.weight_target || 135,
+        rpe: "",
+        label: i === 0 && count > 1 ? "Warm-up" : "Work Set",
+      })));
       toast.info(`Applied template: ${tmpl.name}`);
     }
   }
@@ -153,10 +164,19 @@ export default function ClientDetailPage() {
   // ── Handlers ──
   async function handleSave(e) {
     e.preventDefault();
+    if (!setRows.length) { toast.error("Add at least one set."); return; }
     setSaving(true);
     try {
-      await addEntry({ ...form, sets: Number(form.sets), reps: Number(form.reps), weight: Number(form.weight), rpe: form.rpe !== "" ? Number(form.rpe) : null });
-      toast.success("Entry saved.");
+      for (const row of setRows) {
+        const noteStr = [row.label ? `[${row.label}]` : "", form.notes].filter(Boolean).join(" ");
+        await addEntry({
+          date: form.date, exercise: form.exercise, muscle_group: form.muscle_group,
+          sets: 1, reps: Number(row.reps) || 0, weight: Number(row.weight) || 0,
+          rpe: row.rpe !== "" ? Number(row.rpe) : null,
+          notes: noteStr || null,
+        });
+      }
+      toast.success(`${setRows.length} set${setRows.length !== 1 ? "s" : ""} saved.`);
     } catch (err) { toast.error(err.message); }
     finally { setSaving(false); }
   }
@@ -270,18 +290,140 @@ export default function ClientDetailPage() {
     toast.success("CSV downloaded.");
   }
 
-  async function exportPDF() {
-    const el = document.getElementById("pdf-area");
-    if (!el) return;
-    toast.info("Generating PDF…");
+  function exportPDF() {
     try {
-      const canvas = await html2canvas(el, { backgroundColor: "#0a0a0a", scale: 1.5 });
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const w = pdf.internal.pageSize.getWidth();
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, w, (canvas.height * w) / canvas.width);
-      pdf.save(`${client?.name?.replace(/\s+/g,"_")||"client"}_report.pdf`);
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const usable = pw - margin * 2;
+      let y = margin;
+
+      function checkPage(needed = 8) {
+        if (y + needed > ph - margin) { pdf.addPage(); y = margin; }
+      }
+
+      // ── Header ──
+      pdf.setFillColor(220, 38, 38);
+      pdf.rect(0, 0, pw, 18, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("AF_APP — Workout Report", margin, 12);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Generated ${new Date().toLocaleDateString()}`, pw - margin, 12, { align: "right" });
+      y = 26;
+
+      // ── Client info ──
+      pdf.setTextColor(30, 30, 30);
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(client?.name || "Client", margin, y); y += 7;
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(100, 100, 100);
+      if (client?.email) { pdf.text(client.email, margin, y); y += 5; }
+      if (client?.training_level) { pdf.text(`Level: ${client.training_level}  |  Goal: ${client.primary_goal?.replace("_"," ") || "—"}`, margin, y); y += 5; }
+      y += 3;
+
+      // ── Summary stats ──
+      pdf.setDrawColor(220, 38, 38);
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, y, pw - margin, y); y += 5;
+      pdf.setTextColor(30, 30, 30);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Summary", margin, y); y += 5;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(60, 60, 60);
+      const totalVol = entries.reduce((s, e) => s + e.sets * e.reps * e.weight, 0);
+      const sessions = new Set(entries.map((e) => e.date)).size;
+      pdf.text(`Total Entries: ${entries.length}   Sessions: ${sessions}   Total Volume: ${Intl.NumberFormat().format(Math.round(totalVol))} lb`, margin, y); y += 8;
+
+      // ── PRs ──
+      if (Object.keys(prMap).length) {
+        checkPage(12);
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineWidth(0.3);
+        pdf.line(margin, y, pw - margin, y); y += 5;
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 30, 30);
+        pdf.text("Personal Records", margin, y); y += 5;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        const prs = Object.entries(prMap).sort((a, b) => b[1] - a[1]);
+        const colW = usable / 3;
+        prs.forEach(([ex, wt], idx) => {
+          const col = idx % 3;
+          const row = Math.floor(idx / 3);
+          if (col === 0) checkPage(6);
+          const xPos = margin + col * colW;
+          const yPos = y + row * 6;
+          pdf.setTextColor(60, 60, 60);
+          pdf.text(`${ex}:`, xPos, yPos);
+          pdf.setTextColor(220, 38, 38);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${wt} lb`, xPos + colW * 0.65, yPos);
+          pdf.setFont("helvetica", "normal");
+          pdf.setTextColor(60, 60, 60);
+        });
+        y += Math.ceil(prs.length / 3) * 6 + 5;
+      }
+
+      // ── Workout log ──
+      checkPage(20);
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.3);
+      pdf.line(margin, y, pw - margin, y); y += 5;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 30, 30);
+      pdf.text("Workout Log", margin, y); y += 5;
+
+      // Table header
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(margin, y, usable, 6, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(8);
+      pdf.setTextColor(80, 80, 80);
+      const cols = [0, 22, 62, 74, 86, 100, 114];
+      const headers = ["Date", "Exercise", "S", "R", "Wt (lb)", "RPE", "Notes"];
+      headers.forEach((h, i) => pdf.text(h, margin + cols[i], y + 4));
+      y += 7;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      entries.forEach((e, idx) => {
+        checkPage(6);
+        if (idx % 2 === 0) { pdf.setFillColor(252, 252, 252); pdf.rect(margin, y - 1, usable, 6, "F"); }
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(e.date, margin + cols[0], y + 3);
+        pdf.text(e.exercise.length > 22 ? e.exercise.slice(0, 20) + "…" : e.exercise, margin + cols[1], y + 3);
+        pdf.text(String(e.sets), margin + cols[2], y + 3);
+        pdf.text(String(e.reps), margin + cols[3], y + 3);
+        pdf.setTextColor(180, 30, 30);
+        pdf.text(String(e.weight), margin + cols[4], y + 3);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text(e.rpe != null ? String(e.rpe) : "—", margin + cols[5], y + 3);
+        const note = (e.notes || "").slice(0, 28);
+        pdf.text(note, margin + cols[6], y + 3);
+        y += 6;
+      });
+
+      // ── Footer ──
+      pdf.setFontSize(7);
+      pdf.setTextColor(160, 160, 160);
+      pdf.text("AF_APP — Workout Tracker for Trainers — aftrainer.app", pw / 2, ph - 8, { align: "center" });
+
+      pdf.save(`${(client?.name || "client").replace(/\s+/g, "_")}_report.pdf`);
       toast.success("PDF saved.");
-    } catch { toast.error("PDF generation failed."); }
+    } catch (err) {
+      toast.error("PDF generation failed.");
+      console.error(err);
+    }
   }
 
   if (clientsLoading) return <Layout><div className="flex items-center justify-center h-64 text-red-500 animate-pulse">Loading…</div></Layout>;
@@ -365,22 +507,25 @@ export default function ClientDetailPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSave} className="grid sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-neutral-300">Date</Label>
-                      <Input type="date" className="bg-neutral-800 border-neutral-700 mt-1"
-                        value={form.date} onChange={(e) => update("date", e.target.value)} />
+                  <form onSubmit={handleSave} className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-neutral-300">Date</Label>
+                        <Input type="date" className="bg-neutral-800 border-neutral-700 mt-1"
+                          value={form.date} onChange={(e) => update("date", e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="text-neutral-300">Muscle Group</Label>
+                        <Select value={form.muscle_group} onValueChange={(v) => update("muscle_group", v)}>
+                          <SelectTrigger className="bg-neutral-800 border-neutral-700 mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-neutral-900 border-neutral-700">
+                            {MUSCLE_GROUPS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+
                     <div>
-                      <Label className="text-neutral-300">Muscle Group</Label>
-                      <Select value={form.muscle_group} onValueChange={(v) => update("muscle_group", v)}>
-                        <SelectTrigger className="bg-neutral-800 border-neutral-700 mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border-neutral-700">
-                          {MUSCLE_GROUPS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="sm:col-span-2">
                       <Label className="text-neutral-300">Exercise</Label>
                       <div className="relative mt-1 mb-1.5">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-500" />
@@ -394,37 +539,75 @@ export default function ClientDetailPage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Set builder */}
                     <div>
-                      <Label className="text-neutral-300">Sets</Label>
-                      <Input type="number" className="bg-neutral-800 border-neutral-700 mt-1"
-                        value={form.sets} min={1} onChange={(e) => update("sets", e.target.value)} />
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-neutral-300">Sets</Label>
+                        <span className="text-xs text-neutral-500">{setRows.length} set{setRows.length !== 1 ? "s" : ""}</span>
+                      </div>
+                      <div className="rounded-lg border border-neutral-700 overflow-hidden">
+                        <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-0 bg-neutral-800/60 border-b border-neutral-700 text-xs text-neutral-500 uppercase tracking-wide">
+                          <div className="px-2 py-1.5">#</div>
+                          <div className="px-2 py-1.5">Type</div>
+                          <div className="px-2 py-1.5">Reps</div>
+                          <div className="px-2 py-1.5">Weight lb</div>
+                          <div className="px-2 py-1.5">RPE</div>
+                        </div>
+                        {setRows.map((row, i) => (
+                          <div key={i} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-0 border-b border-neutral-800 last:border-0 items-center">
+                            <div className="px-2 py-1 text-xs text-neutral-600 font-mono">{i + 1}</div>
+                            <div className="px-1 py-1">
+                              <select
+                                className="w-full bg-neutral-800 border border-neutral-700 rounded px-1.5 py-1 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-red-600"
+                                value={row.label}
+                                onChange={(e) => updateSetRow(i, "label", e.target.value)}
+                              >
+                                {SET_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                              </select>
+                            </div>
+                            <div className="px-1 py-1">
+                              <input type="number" min={1}
+                                className="w-full bg-neutral-800 border border-neutral-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-600"
+                                value={row.reps}
+                                onChange={(e) => updateSetRow(i, "reps", e.target.value)} />
+                            </div>
+                            <div className="px-1 py-1">
+                              <input type="number" min={0} step="2.5"
+                                className="w-full bg-neutral-800 border border-neutral-700 rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-600"
+                                value={row.weight}
+                                onChange={(e) => updateSetRow(i, "weight", e.target.value)} />
+                            </div>
+                            <div className="px-1 py-1 flex items-center gap-1">
+                              <input type="number" min={0} max={10} step="0.5" placeholder="—"
+                                className="w-10 bg-neutral-800 border border-neutral-700 rounded px-1 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-600"
+                                value={row.rpe}
+                                onChange={(e) => updateSetRow(i, "rpe", e.target.value)} />
+                              {setRows.length > 1 && (
+                                <button type="button" onClick={() => removeSetRow(i)}
+                                  className="p-1 text-neutral-600 hover:text-red-500 transition-colors">
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button type="button" onClick={addSetRow}
+                        className="mt-2 flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors px-1">
+                        <Plus className="h-3.5 w-3.5" /> Add Set
+                      </button>
                     </div>
+
                     <div>
-                      <Label className="text-neutral-300">Reps</Label>
-                      <Input type="number" className="bg-neutral-800 border-neutral-700 mt-1"
-                        value={form.reps} min={1} onChange={(e) => update("reps", e.target.value)} />
-                      {showSuggest && <p className="mt-1 text-xs text-emerald-400">{form.reps} reps — try ~{suggestedWeight} lb next session.</p>}
-                    </div>
-                    <div>
-                      <Label className="text-neutral-300">Weight (lbs)</Label>
-                      <Input type="number" className="bg-neutral-800 border-neutral-700 mt-1"
-                        value={form.weight} min={0} step="0.5" onChange={(e) => update("weight", e.target.value)} />
-                    </div>
-                    <div>
-                      <Label className="text-neutral-300">RPE <span className="text-neutral-500 font-normal">(0–10, optional)</span></Label>
-                      <Input type="number" className="bg-neutral-800 border-neutral-700 mt-1"
-                        placeholder="e.g. 8" value={form.rpe} min={0} max={10} step="0.5"
-                        onChange={(e) => update("rpe", e.target.value)} />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <Label className="text-neutral-300">Notes</Label>
-                      <Textarea className="bg-neutral-800 border-neutral-700 min-h-[68px] mt-1"
-                        placeholder="Tempo, cues, superset, how it felt…"
+                      <Label className="text-neutral-300">Session Notes <span className="text-neutral-500 font-normal">(optional)</span></Label>
+                      <Textarea className="bg-neutral-800 border-neutral-700 min-h-[60px] mt-1"
+                        placeholder="Tempo, cues, how it felt, observations…"
                         value={form.notes} onChange={(e) => update("notes", e.target.value)} />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div>
                       <Button type="submit" className="glow-btn" disabled={saving}>
-                        <Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : "Save Entry"}
+                        <Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : `Save ${setRows.length} Set${setRows.length !== 1 ? "s" : ""}`}
                       </Button>
                     </div>
                   </form>

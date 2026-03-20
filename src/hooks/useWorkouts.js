@@ -51,11 +51,19 @@ export function useWorkouts(clientId) {
     return data;
   }
 
+  async function updateEntry(id, updates) {
+    const { data, error } = await supabase
+      .from("workout_entries").update(updates).eq("id", id).select().single();
+    if (error) throw error;
+    setEntries((prev) => prev.map((e) => (e.id === id ? data : e)));
+    return data;
+  }
+
   async function deleteEntry(id) {
     const { error } = await supabase.from("workout_entries").delete().eq("id", id);
     if (error) throw error;
     setEntries((prev) => prev.filter((e) => e.id !== id));
   }
 
-  return { entries, loading, error, addEntry, deleteEntry, refetch: fetchEntries };
+  return { entries, loading, error, addEntry, updateEntry, deleteEntry, refetch: fetchEntries };
 }

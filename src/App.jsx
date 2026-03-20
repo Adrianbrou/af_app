@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
 import ClientDetailPage from "@/pages/ClientDetailPage";
+import TemplatesPage from "@/pages/TemplatesPage";
 import { supabaseReady } from "@/lib/supabase";
 
 // Shown when .env.local is missing — dev/setup only
@@ -57,6 +58,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <ClientDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/templates"
+              element={
+                <ProtectedRoute>
+                  <TemplatesPage />
                 </ProtectedRoute>
               }
             />

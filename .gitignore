@@ -74,3 +74,5 @@ coverage/
 
 # Large folders
 openJdk-25/
+
+.claude

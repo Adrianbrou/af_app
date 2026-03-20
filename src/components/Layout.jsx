@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Dumbbell, Users } from "lucide-react";
+import { LogOut, Dumbbell, Users, LayoutTemplate } from "lucide-react";
 
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth();
@@ -33,6 +33,13 @@ export default function Layout({ children }) {
             >
               <Users className="h-4 w-4" />
               <span className="hidden sm:block">Clients</span>
+            </Link>
+            <Link
+              to="/templates"
+              className="flex items-center gap-1.5 text-sm text-neutral-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-neutral-800"
+            >
+              <LayoutTemplate className="h-4 w-4" />
+              <span className="hidden sm:block">Templates</span>
             </Link>
 
             {profile?.full_name && (

@@ -78,7 +78,7 @@ export default function ClientDetailPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("");
 
   // ── Measurements form ──
-  const [mForm, setMForm] = useState({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", thigh_in: "", calf_in: "", notes: "" });
+  const [mForm, setMForm] = useState({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", glutes_in: "", thigh_in: "", calf_in: "", notes: "" });
   const [mSaving, setMSaving] = useState(false);
 
   // ── Goals form ──
@@ -213,11 +213,11 @@ export default function ClientDetailPage() {
     setMSaving(true);
     try {
       const payload = { date: mForm.date, notes: mForm.notes };
-      ["weight_lbs","body_fat_pct","neck_in","shoulders_in","chest_in","bicep_in","forearm_in","waist_in","hips_in","thigh_in","calf_in"].forEach((k) => {
+      ["weight_lbs","body_fat_pct","neck_in","shoulders_in","chest_in","bicep_in","forearm_in","waist_in","hips_in","glutes_in","thigh_in","calf_in"].forEach((k) => {
         if (mForm[k] !== "") payload[k] = Number(mForm[k]);
       });
       await addMeasurement(payload);
-      setMForm({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", thigh_in: "", calf_in: "", notes: "" });
+      setMForm({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", glutes_in: "", thigh_in: "", calf_in: "", notes: "" });
       toast.success("Measurements saved.");
     } catch (err) { toast.error(err.message); }
     finally { setMSaving(false); }
@@ -967,7 +967,7 @@ export default function ClientDetailPage() {
                     <div>
                       <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">Core & Lower Body (inches)</p>
                       <div className="grid sm:grid-cols-3 gap-3">
-                        {[{ key:"waist_in",label:"Waist" },{ key:"hips_in",label:"Hips" },{ key:"thigh_in",label:"Thigh" },{ key:"calf_in",label:"Calf" }].map(({ key, label }) => (
+                        {[{ key:"waist_in",label:"Waist" },{ key:"hips_in",label:"Hips" },{ key:"glutes_in",label:"Glutes" },{ key:"thigh_in",label:"Thigh" },{ key:"calf_in",label:"Calf" }].map(({ key, label }) => (
                           <div key={key}>
                             <Label className="text-neutral-300">{label}</Label>
                             <Input type="number" step="0.1" className="bg-neutral-800 border-neutral-700 mt-1"
@@ -1010,6 +1010,7 @@ export default function ClientDetailPage() {
                           <th className="px-3 py-2">Forearm</th>
                           <th className="px-3 py-2">Waist</th>
                           <th className="px-3 py-2">Hips</th>
+                          <th className="px-3 py-2">Glutes</th>
                           <th className="px-3 py-2">Thigh</th>
                           <th className="px-3 py-2">Calf</th>
                           <th className="px-3 py-2"></th>
@@ -1027,6 +1028,7 @@ export default function ClientDetailPage() {
                               <td className="px-3 py-2">{m.forearm_in ? `${m.forearm_in}"` : "—"}</td>
                               <td className="px-3 py-2">{m.waist_in ? `${m.waist_in}"` : "—"}</td>
                               <td className="px-3 py-2">{m.hips_in ? `${m.hips_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.glutes_in ? `${m.glutes_in}"` : "—"}</td>
                               <td className="px-3 py-2">{m.thigh_in ? `${m.thigh_in}"` : "—"}</td>
                               <td className="px-3 py-2">{m.calf_in ? `${m.calf_in}"` : "—"}</td>
                               <td className="px-3 py-2">

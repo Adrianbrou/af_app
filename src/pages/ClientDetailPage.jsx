@@ -78,7 +78,7 @@ export default function ClientDetailPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("");
 
   // ── Measurements form ──
-  const [mForm, setMForm] = useState({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", chest_in: "", waist_in: "", hips_in: "", notes: "" });
+  const [mForm, setMForm] = useState({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", thigh_in: "", calf_in: "", notes: "" });
   const [mSaving, setMSaving] = useState(false);
 
   // ── Goals form ──
@@ -213,11 +213,11 @@ export default function ClientDetailPage() {
     setMSaving(true);
     try {
       const payload = { date: mForm.date, notes: mForm.notes };
-      ["weight_lbs", "body_fat_pct", "chest_in", "waist_in", "hips_in"].forEach((k) => {
+      ["weight_lbs","body_fat_pct","neck_in","shoulders_in","chest_in","bicep_in","forearm_in","waist_in","hips_in","thigh_in","calf_in"].forEach((k) => {
         if (mForm[k] !== "") payload[k] = Number(mForm[k]);
       });
       await addMeasurement(payload);
-      setMForm({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", chest_in: "", waist_in: "", hips_in: "", notes: "" });
+      setMForm({ date: formatDateISO(), weight_lbs: "", body_fat_pct: "", neck_in: "", shoulders_in: "", chest_in: "", bicep_in: "", forearm_in: "", waist_in: "", hips_in: "", thigh_in: "", calf_in: "", notes: "" });
       toast.success("Measurements saved.");
     } catch (err) { toast.error(err.message); }
     finally { setMSaving(false); }
@@ -928,25 +928,61 @@ export default function ClientDetailPage() {
               <Card className="card-style">
                 <CardHeader className="pb-2"><CardTitle>Log Measurements</CardTitle></CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSaveMeasurement} className="grid sm:grid-cols-2 gap-3">
-                    <div className="sm:col-span-2">
+                  <form onSubmit={handleSaveMeasurement} className="space-y-4">
+                    <div>
                       <Label className="text-neutral-300">Date</Label>
                       <Input type="date" className="bg-neutral-800 border-neutral-700 mt-1"
                         value={mForm.date} onChange={(e) => setMForm((f) => ({ ...f, date: e.target.value }))} />
                     </div>
-                    {[{ key:"weight_lbs",label:"Body Weight (lbs)" },{ key:"body_fat_pct",label:"Body Fat %" },{ key:"chest_in",label:"Chest (in)" },{ key:"waist_in",label:"Waist (in)" },{ key:"hips_in",label:"Hips (in)" }].map(({ key, label }) => (
-                      <div key={key}>
-                        <Label className="text-neutral-300">{label}</Label>
-                        <Input type="number" step="0.1" className="bg-neutral-800 border-neutral-700 mt-1"
-                          placeholder="—" value={mForm[key]} onChange={(e) => setMForm((f) => ({ ...f, [key]: e.target.value }))} />
+
+                    {/* General */}
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">General</p>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {[{ key:"weight_lbs",label:"Body Weight (lbs)" },{ key:"body_fat_pct",label:"Body Fat %" }].map(({ key, label }) => (
+                          <div key={key}>
+                            <Label className="text-neutral-300">{label}</Label>
+                            <Input type="number" step="0.1" className="bg-neutral-800 border-neutral-700 mt-1"
+                              placeholder="—" value={mForm[key]} onChange={(e) => setMForm((f) => ({ ...f, [key]: e.target.value }))} />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <div className="sm:col-span-2">
+                    </div>
+
+                    {/* Upper body */}
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">Upper Body (inches)</p>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {[{ key:"neck_in",label:"Neck" },{ key:"shoulders_in",label:"Shoulders" },{ key:"chest_in",label:"Chest" },{ key:"bicep_in",label:"Bicep" },{ key:"forearm_in",label:"Forearm" }].map(({ key, label }) => (
+                          <div key={key}>
+                            <Label className="text-neutral-300">{label}</Label>
+                            <Input type="number" step="0.1" className="bg-neutral-800 border-neutral-700 mt-1"
+                              placeholder="—" value={mForm[key]} onChange={(e) => setMForm((f) => ({ ...f, [key]: e.target.value }))} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Core & Lower body */}
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-neutral-500 mb-2">Core & Lower Body (inches)</p>
+                      <div className="grid sm:grid-cols-3 gap-3">
+                        {[{ key:"waist_in",label:"Waist" },{ key:"hips_in",label:"Hips" },{ key:"thigh_in",label:"Thigh" },{ key:"calf_in",label:"Calf" }].map(({ key, label }) => (
+                          <div key={key}>
+                            <Label className="text-neutral-300">{label}</Label>
+                            <Input type="number" step="0.1" className="bg-neutral-800 border-neutral-700 mt-1"
+                              placeholder="—" value={mForm[key]} onChange={(e) => setMForm((f) => ({ ...f, [key]: e.target.value }))} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
                       <Label className="text-neutral-300">Notes</Label>
                       <Textarea className="bg-neutral-800 border-neutral-700 min-h-[60px] mt-1"
-                        placeholder="Context, conditions…" value={mForm.notes} onChange={(e) => setMForm((f) => ({ ...f, notes: e.target.value }))} />
+                        placeholder="Context, conditions, time of day…" value={mForm.notes} onChange={(e) => setMForm((f) => ({ ...f, notes: e.target.value }))} />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div>
                       <Button type="submit" className="glow-btn" disabled={mSaving}>
                         <Save className="mr-2 h-4 w-4" />{mSaving ? "Saving…" : "Save Measurements"}
                       </Button>
@@ -962,22 +998,37 @@ export default function ClientDetailPage() {
                   : measurements.length === 0 ? <div className="text-center py-10 text-neutral-500">No measurements yet.</div>
                   : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
+                      <table className="w-full text-sm min-w-[700px]">
                         <thead><tr className="bg-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-400">
-                          <th className="px-3 py-2">Date</th><th className="px-3 py-2">Weight</th><th className="px-3 py-2">BF%</th>
-                          <th className="px-3 py-2 hidden sm:table-cell">Chest</th><th className="px-3 py-2 hidden sm:table-cell">Waist</th><th className="px-3 py-2 hidden sm:table-cell">Hips</th>
-                          <th className="px-3 py-2 hidden lg:table-cell">Notes</th><th className="px-3 py-2"></th>
+                          <th className="px-3 py-2">Date</th>
+                          <th className="px-3 py-2">Weight</th>
+                          <th className="px-3 py-2">BF%</th>
+                          <th className="px-3 py-2">Neck</th>
+                          <th className="px-3 py-2">Shoulders</th>
+                          <th className="px-3 py-2">Chest</th>
+                          <th className="px-3 py-2">Bicep</th>
+                          <th className="px-3 py-2">Forearm</th>
+                          <th className="px-3 py-2">Waist</th>
+                          <th className="px-3 py-2">Hips</th>
+                          <th className="px-3 py-2">Thigh</th>
+                          <th className="px-3 py-2">Calf</th>
+                          <th className="px-3 py-2"></th>
                         </tr></thead>
                         <tbody>
                           {measurements.map((m) => (
-                            <tr key={m.id} className="border-b border-neutral-800 hover:bg-neutral-800/30">
-                              <td className="px-3 py-2 text-neutral-400 text-xs">{m.date}</td>
+                            <tr key={m.id} className="border-b border-neutral-800 hover:bg-neutral-800/30 text-xs">
+                              <td className="px-3 py-2 text-neutral-400 whitespace-nowrap">{m.date}</td>
                               <td className="px-3 py-2 text-red-400 font-medium">{m.weight_lbs ? `${m.weight_lbs}lb` : "—"}</td>
                               <td className="px-3 py-2">{m.body_fat_pct ? `${m.body_fat_pct}%` : "—"}</td>
-                              <td className="px-3 py-2 hidden sm:table-cell">{m.chest_in ? `${m.chest_in}"` : "—"}</td>
-                              <td className="px-3 py-2 hidden sm:table-cell">{m.waist_in ? `${m.waist_in}"` : "—"}</td>
-                              <td className="px-3 py-2 hidden sm:table-cell">{m.hips_in ? `${m.hips_in}"` : "—"}</td>
-                              <td className="px-3 py-2 max-w-[160px] truncate text-neutral-600 hidden lg:table-cell text-xs">{m.notes}</td>
+                              <td className="px-3 py-2">{m.neck_in ? `${m.neck_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.shoulders_in ? `${m.shoulders_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.chest_in ? `${m.chest_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.bicep_in ? `${m.bicep_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.forearm_in ? `${m.forearm_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.waist_in ? `${m.waist_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.hips_in ? `${m.hips_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.thigh_in ? `${m.thigh_in}"` : "—"}</td>
+                              <td className="px-3 py-2">{m.calf_in ? `${m.calf_in}"` : "—"}</td>
                               <td className="px-3 py-2">
                                 <button onClick={() => handleDeleteMeasurement(m.id)} className="p-1.5 text-neutral-600 hover:text-red-500 hover:bg-red-900/20 rounded transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                               </td>

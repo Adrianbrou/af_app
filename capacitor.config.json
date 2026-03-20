@@ -1,0 +1,13 @@
+{
+  "appId": "com.afapp.workouttracker",
+  "appName": "AF_APP",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

@@ -332,10 +332,10 @@ export default function ClientDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-5 bg-neutral-900 border border-neutral-800 rounded-xl p-1 w-fit overflow-x-auto">
+        <div className="flex mb-5 bg-neutral-900 border border-neutral-800 rounded-xl p-1 overflow-x-auto">
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab ? "bg-red-600 text-white" : "text-neutral-400 hover:text-white"}`}>
+              className={`flex-1 min-w-[4.5rem] px-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap text-center ${activeTab === tab ? "bg-red-600 text-white" : "text-neutral-400 hover:text-white"}`}>
               {tab}
             </button>
           ))}
@@ -491,8 +491,8 @@ export default function ClientDetailPage() {
                                     <td className="px-3 py-2 max-w-[180px] truncate text-neutral-600 hidden lg:table-cell text-xs" title={e.notes}>{e.notes}</td>
                                     <td className="px-3 py-2">
                                       <div className="flex gap-1">
-                                        <button onClick={() => startEditEntry(e)} className="p-1.5 text-neutral-600 hover:text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                                        <button onClick={() => handleDeleteEntry(e.id)} className="p-1.5 text-neutral-600 hover:text-red-500 hover:bg-red-900/20 rounded transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                                        <button onClick={() => startEditEntry(e)} className="p-2 text-neutral-500 hover:text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Pencil className="h-4 w-4" /></button>
+                                        <button onClick={() => handleDeleteEntry(e.id)} className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-900/20 rounded transition-colors"><Trash2 className="h-4 w-4" /></button>
                                       </div>
                                     </td>
                                   </>

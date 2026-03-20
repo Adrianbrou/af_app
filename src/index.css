@@ -6,8 +6,28 @@ body {
   @apply bg-gradient-to-b from-black via-neutral-900 to-red-950 text-white;
 }
 
+/* Prevent iOS auto-zoom when tapping inputs (requires font-size >= 16px) */
+@layer base {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Better tap responsiveness */
+button, a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .card-style {
-  @apply bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg shadow-red-900/30 transition-transform hover:scale-[1.01];
+  @apply bg-neutral-900 border border-neutral-800 rounded-xl shadow-lg shadow-red-900/30;
+}
+
+/* Only scale on devices that support hover (not touch) */
+@media (hover: hover) {
+  .card-style {
+    @apply transition-transform hover:scale-[1.01];
+  }
 }
 
 .glow-btn {

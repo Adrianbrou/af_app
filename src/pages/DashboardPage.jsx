@@ -292,7 +292,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+              <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0 ml-2">
                 <button onClick={(e) => startEdit(e, client)}
                   className="p-1.5 rounded-lg text-neutral-500 hover:text-blue-400 hover:bg-blue-900/20 transition-colors">
                   <Pencil className="h-3.5 w-3.5" />

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Dumbbell, Users, LayoutTemplate } from "lucide-react";
+import { LogOut, Dumbbell, Users, LayoutTemplate, ShieldCheck } from "lucide-react";
 
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth();
@@ -41,6 +41,16 @@ export default function Layout({ children }) {
               <LayoutTemplate className="h-4 w-4" />
               <span className="hidden sm:block">Templates</span>
             </Link>
+
+            {(profile?.role === "admin" || profile?.role === "super_admin") && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1.5 text-sm text-yellow-400 hover:text-yellow-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-yellow-900/20 border border-yellow-700/30"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:block">Admin</span>
+              </Link>
+            )}
 
             {profile?.full_name && (
               <span className="text-xs text-neutral-400 hidden sm:block">

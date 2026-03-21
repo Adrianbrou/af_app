@@ -22,11 +22,12 @@ import {
 import {
   Save, Trash2, Download, ChevronLeft, TrendingUp, BarChart2,
   Activity, Dumbbell, Trophy, Search, Target, MessageSquare,
-  Check, X, Pencil, LayoutTemplate, Plus,
+  Check, X, Pencil, LayoutTemplate, Plus, Mail,
 } from "lucide-react";
 import { MUSCLE_GROUPS, EXERCISES_BY_MUSCLE, ALL_EXERCISES } from "@/constants/exercises";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { supabase } from "@/lib/supabase";
 
 const TABS = ["Workouts", "Goals", "Check-ins", "Measurements", "Progress"];
 const GOAL_TYPES = ["lift_pr", "body_weight", "body_fat", "custom"];
@@ -282,6 +283,24 @@ export default function ClientDetailPage() {
     catch (err) { toast.error(err.message); }
   }
 
+  const [inviting, setInviting] = useState(false);
+  async function handleInvitePortal() {
+    if (!client?.email) { toast.error("Client has no email saved."); return; }
+    setInviting(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: client.email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/portal`,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Portal invite sent to ${client.email}`);
+    } catch (err) { toast.error(err.message); }
+    finally { setInviting(false); }
+  }
+
   function exportCSV() {
     const lines = [["date","exercise","muscle_group","sets","reps","weight_lbs","rpe","notes"].join(",")];
     for (const e of entries)
@@ -458,6 +477,17 @@ export default function ClientDetailPage() {
         {client.email && <span className="text-sm text-neutral-400 hidden sm:block">{client.email}</span>}
         {client.training_level && <span className="text-xs text-neutral-500 bg-neutral-800 px-2 py-0.5 rounded-full hidden sm:block capitalize">{client.training_level}</span>}
         {client.primary_goal && <span className="text-xs text-red-500 bg-red-900/20 border border-red-800/30 px-2 py-0.5 rounded-full hidden sm:block capitalize">{client.primary_goal.replace("_"," ")}</span>}
+        {client.email && (
+          <button
+            type="button"
+            onClick={handleInvitePortal}
+            disabled={inviting}
+            className="ml-auto flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-emerald-700/40 text-emerald-400 bg-emerald-900/20 hover:bg-emerald-900/40 transition-colors disabled:opacity-50"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            {inviting ? "Sending…" : "Invite to Portal"}
+          </button>
+        )}
       </div>
 
       {client.notes && (

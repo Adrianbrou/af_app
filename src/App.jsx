@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import ClientDetailPage from "@/pages/ClientDetailPage";
 import TemplatesPage from "@/pages/TemplatesPage";
 import AdminPage from "@/pages/AdminPage";
+import ClientPortalPage from "@/pages/ClientPortalPage";
 import { supabaseReady } from "@/lib/supabase";
 
 // Shown when .env.local is missing — dev/setup only
@@ -75,6 +76,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <AdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/portal"
+              element={
+                <ProtectedRoute>
+                  <ClientPortalPage />
                 </ProtectedRoute>
               }
             />

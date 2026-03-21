@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/context/ToastContext";
 import Layout from "@/components/Layout";
@@ -27,9 +28,13 @@ function daysSince(dateStr) {
 }
 
 export default function DashboardPage() {
+  const { isClient } = useAuth();
   const { clients, loading, addClient, updateClient, deleteClient } = useClients();
   const toast = useToast();
   const navigate = useNavigate();
+
+  // Redirect clients to their portal
+  useEffect(() => { if (isClient) navigate("/portal", { replace: true }); }, [isClient, navigate]);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", email: "", phone: "", notes: "", training_level: "", primary_goal: "", start_date: "" });

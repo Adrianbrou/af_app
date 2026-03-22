@@ -292,7 +292,7 @@ export default function ClientDetailPage() {
         email: client.email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/portal`,
+          emailRedirectTo: `https://aftrainer.app/portal`,
         },
       });
       if (error) throw error;
